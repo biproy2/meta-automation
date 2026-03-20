@@ -1,0 +1,5 @@
+[phases.build]
+cmds = ["dotnet publish Ecommerce.API/Ecommerce.API.csproj -c Release -o out"]
+
+[start]
+cmd = "dotnet out/Ecommerce.API.dll"
