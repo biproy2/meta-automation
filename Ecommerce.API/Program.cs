@@ -47,6 +47,5 @@ app.UseSwaggerUI(c =>
 app.UseHttpsRedirection();
 app.UseCors("AllowAll");
 app.MapControllers();
-app.MapHealthChecks("/health");
 
 await app.RunAsync();
