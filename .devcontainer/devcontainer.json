@@ -1,0 +1,26 @@
+{
+  "name": "Ecommerce Automation API",
+  "image": "mcr.microsoft.com/devcontainers/dotnet:8.0",
+  "features": {
+    "ghcr.io/devcontainers/features/dotnet:2": {
+      "version": "8.0"
+    }
+  },
+  "postCreateCommand": "dotnet restore Ecommerce.Automation.sln && dotnet tool install --global dotnet-ef",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-dotnettools.csharp",
+        "ms-dotnettools.csdevkit",
+        "ms-dotnettools.vscode-dotnet-runtime"
+      ],
+      "settings": {
+        "dotnet.defaultSolution": "Ecommerce.Automation.sln"
+      }
+    }
+  },
+  "forwardPorts": [5000, 5001],
+  "portsAttributes": {
+    "5000": { "label": "API HTTP", "onAutoForward": "openBrowser" }
+  }
+}
