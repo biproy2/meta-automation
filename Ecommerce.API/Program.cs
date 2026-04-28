@@ -5,6 +5,29 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
+
+// 🔥 Convert Render DATABASE_URL → .NET connection string
+var dbUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
+
+if (!string.IsNullOrEmpty(dbUrl))
+{
+    var uri = new Uri(dbUrl);
+    var userInfo = uri.UserInfo.Split(':');
+
+    var connStr =
+        $"Host={uri.Host};" +
+        $"Port={uri.Port};" +
+        $"Database={uri.AbsolutePath.Trim('/')};" +
+        $"Username={userInfo[0]};" +
+        $"Password={userInfo[1]};" +
+        $"SSL Mode=Require;" +
+        $"Trust Server Certificate=true";
+
+    builder.Configuration["ConnectionStrings:DefaultConnection"] = connStr;
+}
+
+
+// 🔧 Services
 builder.Services.AddDatabase(builder.Configuration);
 builder.Services.AddApplicationServices();
 builder.Services.AddExternalApiClients();
@@ -19,20 +42,32 @@ builder.Services.AddControllers()
     });
 
 builder.Services.AddEndpointsApiExplorer();
+
 builder.Services.AddCors(opt =>
-    opt.AddPolicy("AllowAll", p => p.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader()));
+    opt.AddPolicy("AllowAll", p =>
+        p.AllowAnyOrigin()
+         .AllowAnyMethod()
+         .AllowAnyHeader()));
 
 var app = builder.Build();
 
+
+// 🔥 Auto run migrations on startup
 try
 {
     using var scope = app.Services.CreateScope();
     var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
     await db.Database.MigrateAsync();
 }
-catch { }
+catch (Exception ex)
+{
+    Console.WriteLine("Migration failed: " + ex.Message);
+}
 
+
+// 🧩 Middlewares
 app.UseMiddleware<ExceptionMiddleware>();
+
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
@@ -41,8 +76,10 @@ app.UseSwaggerUI(c =>
 });
 
 app.UseCors("AllowAll");
+
 app.UseAuthentication();
 app.UseAuthorization();
+
 app.MapControllers();
 
 await app.RunAsync();
